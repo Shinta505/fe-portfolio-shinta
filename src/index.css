@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@theme {
+    --color-bgMain: #12151C;
+    --color-bgSurface: #202531;
+    --color-borderMuted: #3A4255;
+    /* Ubah warna aksen agar merujuk ke variabel CSS dinamis yang dikontrol oleh ThemeContext */
+    --color-goldPrimary: var(--color-accent, #E5A93B);
+    --color-goldHover: var(--color-accent-hover, #FCD34D);
+    --color-goldDark: #A87118;
+    --font-sans: 'Inter', sans-serif;
+    --font-poppins: 'Poppins', sans-serif;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+    body {
+        background-color: var(--color-bgMain);
+        color: #F3F4F6;
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    /* Kustomisasi scrollbar */
+     ::-webkit-scrollbar {
+        width: 8px;
+    }
+     ::-webkit-scrollbar-track {
+        background-color: var(--color-bgMain);
+    }
+     ::-webkit-scrollbar-thumb {
+        background-color: var(--color-borderMuted);
+        border-radius: 9999px;
+    }
+     ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-goldPrimary);
+    }
+}
+
+@layer utilities {
+    .text-gradient {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: linear-gradient(to right, var(--color-goldPrimary), var(--color-goldHover));
+    }
+}
