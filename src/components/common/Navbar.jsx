@@ -30,10 +30,11 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-45 transition-all duration-300 ${isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
           ? 'bg-bgMain/80 backdrop-blur-md border-b border-borderMuted py-3 shadow-lg'
           : 'bg-transparent py-5'
-        }`}
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo / Brand */}
@@ -76,16 +77,16 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-bgSurface/95 backdrop-blur-lg border-b border-borderMuted px-4 pt-4 pb-6 shadow-2xl"
+            transition={{ duration: 0.2 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-bgSurface/95 backdrop-blur-lg border-b border-borderMuted px-4 pt-4 pb-6 shadow-2xl z-50"
           >
-            <nav className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-gray-300 hover:text-goldPrimary font-medium text-base px-3 py-2 rounded-lg transition-colors hover:bg-borderMuted/30"
+                  className="text-gray-300 hover:text-goldPrimary hover:bg-borderMuted/30 font-medium text-base px-4 py-3 rounded-lg transition-colors"
                 >
                   {link.name}
                 </a>
