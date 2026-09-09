@@ -38,19 +38,39 @@ const ManageArticles = () => {
 
     const [status, setStatus] = useState({ type: null, message: '' });
 
-    // Fungsi helper untuk memeriksa dan mengubah status secara otomatis berdasarkan perbandingan milidetik waktu lokal
-    const processArticlesWithSchedule = (articleList) => {
+    // Fungsi helper untuk memeriksa, mengubah status secara lokal, dan mengupdate database jika sudah waktunya
+    const processArticlesWithSchedule = async (articleList) => {
         const nowTime = new Date().getTime();
-        return articleList.map((article) => {
-            if (article.status === 'draft' && article.publishedAt) {
-                const publishTime = new Date(article.publishedAt).getTime();
-                // Jika waktu saat ini sudah melewati atau sama dengan waktu publish, ubah status menjadi published
-                if (!isNaN(publishTime) && nowTime >= publishTime) {
-                    return { ...article, status: 'published' };
+        const updatedArticles = await Promise.all(
+            articleList.map(async (article) => {
+                if (article.status === 'draft' && article.publishedAt) {
+                    const publishTime = new Date(article.publishedAt).getTime();
+                    
+                    // Jika waktu saat ini sudah melewati atau sama dengan waktu publish
+                    if (!isNaN(publishTime) && nowTime >= publishTime) {
+                        try {
+                            // Kirim request ke backend untuk mengubah status menjadi 'published' secara permanen
+                            const submitData = new FormData();
+                            submitData.append('status', 'published');
+                            submitData.append('title', article.title);
+                            submitData.append('slug', article.slug);
+                            submitData.append('content', article.content);
+                            if (article.publishedAt) {
+                                submitData.append('publishedAt', article.publishedAt);
+                            }
+
+                            await updateArticle(article.uuid, submitData);
+                            
+                            return { ...article, status: 'published' };
+                        } catch (error) {
+                            console.error(`Gagal otomatis publish artikel ${article.uuid}:`, error);
+                        }
+                    }
                 }
-            }
-            return article;
-        });
+                return article;
+            })
+        );
+        return updatedArticles;
     };
 
     useEffect(() => {
@@ -64,7 +84,8 @@ const ManageArticles = () => {
 
                 if (isMounted) {
                     const rawArticles = Array.isArray(data) ? data : [];
-                    setArticles(processArticlesWithSchedule(rawArticles));
+                    const processed = await processArticlesWithSchedule(rawArticles);
+                    setArticles(processed);
                 }
             } catch (error) {
                 console.error('Gagal mengambil data artikel:', error);
@@ -81,6 +102,21 @@ const ManageArticles = () => {
             isMounted = false;
         };
     }, []);
+
+    const fetchArticles = async () => {
+        setLoading(true);
+        try {
+            const response = await getArticles();
+            const data = response.data?.data || response.data;
+            const rawArticles = Array.isArray(data) ? data : [];
+            const processed = await processArticlesWithSchedule(rawArticles);
+            setArticles(processed);
+        } catch (error) {
+            console.error('Gagal mengambil data artikel:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchArticles = async () => {
         setLoading(true);
