@@ -9,8 +9,28 @@ import { LuCalendar, LuArrowRight, LuImageOff, LuFileText, LuChevronLeft, LuChev
 const ArticlesSection = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3; // Menampilkan 3 card per halaman
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // State dinamis untuk jumlah item per halaman berdasarkan ukuran layar
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+
+  // Deteksi ukuran layar (Mobile: 1, Tablet/iPad: 2, Desktop: 3)
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setItemsPerPage(1); // Mobile
+      } else if (width >= 768 && width < 1024) {
+        setItemsPerPage(2); // Tablet / iPad
+      } else {
+        setItemsPerPage(3); // Desktop
+      }
+    };
+
+    handleResize(); // Jalankan saat mount
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -34,25 +54,36 @@ const ArticlesSection = () => {
     fetchArticles();
   }, []);
 
-  // Hitung total halaman berdasarkan jumlah artikel
-  const totalPages = Math.ceil(articles.length / itemsPerPage);
+  // Hitung total halaman (slider) secara dinamis
+  const totalPages = Math.ceil(articles.length / itemsPerPage) || 1;
+  const currentPage = Math.floor(currentIndex / itemsPerPage) + 1;
 
-  // Ambil data artikel untuk halaman saat ini
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentArticles = articles.slice(indexOfFirstItem, indexOfLastItem);
+  // Pastikan currentIndex tidak melampaui batas saat itemsPerPage berubah
+  useEffect(() => {
+    if (currentIndex >= articles.length && articles.length > 0) {
+      setCurrentIndex(0);
+    }
+  }, [itemsPerPage, articles.length, currentIndex]);
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
+    if (currentIndex + itemsPerPage < articles.length) {
+      setCurrentIndex(currentIndex + itemsPerPage);
+    } else {
+      setCurrentIndex(0); // Loop kembali ke awal
     }
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
+    if (currentIndex - itemsPerPage >= 0) {
+      setCurrentIndex(currentIndex - itemsPerPage);
+    } else {
+      const lastPageIndex = Math.max(0, (totalPages - 1) * itemsPerPage);
+      setCurrentIndex(lastPageIndex); // Pindah ke halaman terakhir
     }
   };
+
+  // Ambil data artikel untuk halaman/indeks saat ini
+  const currentArticles = articles.slice(currentIndex, currentIndex + itemsPerPage);
 
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
@@ -98,7 +129,7 @@ const ArticlesSection = () => {
           </motion.div>
         ) : (
           <div className="space-y-8">
-            {/* Grid 3 Card */}
+            {/* Grid Card Responsif */}
             <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               <AnimatePresence mode="wait">
                 {currentArticles.map((article) => (
@@ -169,17 +200,12 @@ const ArticlesSection = () => {
               </AnimatePresence>
             </motion.div>
 
-            {/* Navigasi Slider / Paging (< 1 dari X >) */}
-            {totalPages > 1 && (
+            {/* Navigasi Slider / Paging (< X dari Y >) */}
+            {articles.length > itemsPerPage && (
               <div className="flex items-center justify-center gap-4 pt-6">
                 <button
                   onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                  className={`p-2 rounded-full border border-borderMuted bg-bgSurface/40 text-gray-200 transition-colors ${
-                    currentPage === 1 
-                      ? 'opacity-40 cursor-not-allowed' 
-                      : 'hover:bg-goldPrimary hover:text-bgMain hover:border-goldPrimary'
-                  }`}
+                  className="p-2.5 rounded-xl bg-bgSurface/60 border border-borderMuted text-gray-300 hover:text-goldPrimary hover:border-goldPrimary transition-all duration-300 focus:outline-none"
                   aria-label="Previous Page"
                 >
                   <LuChevronLeft className="w-5 h-5" />
@@ -191,12 +217,7 @@ const ArticlesSection = () => {
 
                 <button
                   onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className={`p-2 rounded-full border border-borderMuted bg-bgSurface/40 text-gray-200 transition-colors ${
-                    currentPage === totalPages 
-                      ? 'opacity-40 cursor-not-allowed' 
-                      : 'hover:bg-goldPrimary hover:text-bgMain hover:border-goldPrimary'
-                  }`}
+                  className="p-2.5 rounded-xl bg-bgSurface/60 border border-borderMuted text-gray-300 hover:text-goldPrimary hover:border-goldPrimary transition-all duration-300 focus:outline-none"
                   aria-label="Next Page"
                 >
                   <LuChevronRight className="w-5 h-5" />
