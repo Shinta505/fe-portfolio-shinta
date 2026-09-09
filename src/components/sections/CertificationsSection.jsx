@@ -6,7 +6,6 @@ import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { getCertifications } from '../../api/backendApi';
 
-// Konstanta data dummy (hardcoded) tidak diekspor untuk mencegah peringatan Vite Fast Refresh.
 const dummyCertifications = [
   {
     uuid: 'dummy-cert-1',
@@ -45,15 +44,31 @@ const dummyCertifications = [
 
 /**
  * Komponen CertificationsSection
- * Berfungsi untuk merender antarmuka daftar lisensi dan sertifikasi profesional dengan sistem slider (2 card per halaman).
+ * Berfungsi untuk merender antarmuka daftar lisensi dan sertifikasi profesional dengan sistem slider responsif (1 card per halaman untuk mobile/tablet, 2 card untuk desktop).
  */
 const CertificationsSection = () => {
   const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  // Menampilkan 2 card per halaman
-  const itemsPerPage = 2;
+  // State dinamis untuk jumlah item per halaman berdasarkan ukuran layar
+  const [itemsPerPage, setItemsPerPage] = useState(2);
+
+  // Deteksi ukuran layar untuk mengatur jumlah card per halaman secara responsif
+  useEffect(() => {
+    const handleResize = () => {
+      // Jika lebar layar di bawah breakpoint 'md' (768px), set 1 card per halaman
+      if (window.innerWidth < 768) {
+        setItemsPerPage(1);
+      } else {
+        setItemsPerPage(2);
+      }
+    };
+
+    handleResize(); // Panggil saat awal render
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchCertifications = async () => {
@@ -77,8 +92,15 @@ const CertificationsSection = () => {
     fetchCertifications();
   }, []);
 
-  // Hitung total halaman (slider)
+  // Hitung total halaman (slider) secara dinamis
   const totalPages = Math.ceil(certifications.length / itemsPerPage);
+
+  // Pastikan currentIndex tidak out of bounds saat itemsPerPage berubah
+  useEffect(() => {
+    if (currentIndex >= totalPages && totalPages > 0) {
+      setCurrentIndex(totalPages - 1);
+    }
+  }, [totalPages, currentIndex]);
 
   // Handler navigasi slider
   const handlePrev = () => {
@@ -89,7 +111,7 @@ const CertificationsSection = () => {
     setCurrentIndex((prev) => (prev === totalPages - 1 ? 0 : prev + 1));
   };
 
-  // Ambil data untuk 2 card yang aktif pada halaman saat ini
+  // Ambil data untuk card yang aktif pada halaman saat ini
   const currentCertifications = certifications.slice(
     currentIndex * itemsPerPage,
     (currentIndex + 1) * itemsPerPage
@@ -122,7 +144,7 @@ const CertificationsSection = () => {
           <LoadingSpinner size="md" text="Memuat data sertifikasi..." />
         ) : (
           <div className="space-y-8">
-            {/* Wrapper Card (2 Kolom) */}
+            {/* Wrapper Card (Dinamis 1 kolom di mobile/tablet, 2 kolom di desktop) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 min-h-[420px]">
               {currentCertifications.map((cert, index) => (
                 <motion.div
