@@ -204,20 +204,6 @@ const AboutSection = () => {
                         Lihat CV
                       </Button>
                     </a>
-                    <a
-                      href={currentResume.cv_url || dummyResume.cv_url}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        iconLeft={LuDownload}
-                      >
-                        Unduh CV
-                      </Button>
-                    </a>
                   </div>
                 </div>
               </div>
