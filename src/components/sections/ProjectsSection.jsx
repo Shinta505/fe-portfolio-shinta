@@ -5,7 +5,7 @@ import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { getProjects } from '../../api/backendApi';
 import { FaGithub, FaFigma } from 'react-icons/fa';
-import { LuExternalLink, LuFolderGit2 } from 'react-icons/lu';
+import { LuExternalLink, LuFolderGit2, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 
 // Konstanta data dummy tidak diekspor untuk mencegah error Vite Fast Refresh
 const dummyProjects = [
@@ -84,11 +84,13 @@ const dummyProjects = [
 ];
 
 const categories = ['All', 'Website Development', 'Machine Learning', 'UI/UX Design'];
+const ITEMS_PER_PAGE = 3;
 
 const ProjectsSection = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -111,9 +113,36 @@ const ProjectsSection = () => {
     fetchProjects();
   }, []);
 
+  // Reset pagination index saat kategori berubah
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [selectedCategory]);
+
   const filteredProjects = selectedCategory === 'All'
     ? projects
     : projects.filter((project) => project.category.toLowerCase() === selectedCategory.toLowerCase());
+
+  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE) || 1;
+  const currentPage = Math.floor(currentIndex / ITEMS_PER_PAGE) + 1;
+
+  const handleNext = () => {
+    if (currentIndex + ITEMS_PER_PAGE < filteredProjects.length) {
+      setCurrentIndex(currentIndex + ITEMS_PER_PAGE);
+    } else {
+      setCurrentIndex(0); // Loop kembali ke awal jika sudah di halaman terakhir
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex - ITEMS_PER_PAGE >= 0) {
+      setCurrentIndex(currentIndex - ITEMS_PER_PAGE);
+    } else {
+      const lastPageIndex = (totalPages - 1) * ITEMS_PER_PAGE;
+      setCurrentIndex(lastPageIndex); // Pindah ke halaman terakhir jika di awal
+    }
+  };
+
+  const currentProjects = filteredProjects.slice(currentIndex, currentIndex + ITEMS_PER_PAGE);
 
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
@@ -143,117 +172,155 @@ const ProjectsSection = () => {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-poppins transition-all duration-300 focus:outline-none ${selectedCategory === category
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-poppins transition-all duration-300 focus:outline-none ${
+                selectedCategory === category
                   ? 'bg-goldPrimary text-bgMain shadow-lg shadow-goldPrimary/20'
                   : 'bg-bgSurface/60 text-gray-300 border border-borderMuted hover:border-goldPrimary hover:text-goldPrimary'
-                }`}
+              }`}
             >
               {category}
             </button>
           ))}
         </div>
 
-        {/* Grid Konten Projek */}
+        {/* Konten Grid Projek & Navigasi Slider */}
         {loading ? (
           <LoadingSpinner size="md" text="Memuat projek..." />
         ) : (
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            <AnimatePresence>
-              {filteredProjects.map((project) => (
-                <motion.div
-                  key={project.uuid}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
-                  className="h-full"
-                >
-                  <Card className="h-full flex flex-col overflow-hidden bg-bgSurface/40 border-borderMuted group hover:border-goldPrimary transition-colors duration-300">
-
-                    {/* Gambar Thumbnail */}
-                    <Link to={`/project/${project.slug || project.uuid}`} className="relative h-48 w-full overflow-hidden bg-bgMain border-b border-borderMuted flex items-center justify-center cursor-pointer">
-                      {project.image ? (
-                        <img
-                          src={project.image.startsWith('http') ? project.image : `https://be-portfolio-shinta.vercel.app${project.image}`}
-                          alt={project.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <LuFolderGit2 className="w-16 h-16 text-borderMuted group-hover:text-goldPrimary/50 transition-colors duration-300" />
-                      )}
-                      <div className="absolute top-3 right-3 bg-bgMain/90 backdrop-blur border border-borderMuted px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider text-goldPrimary uppercase">
-                        {project.category}
-                      </div>
-                    </Link>
-
-                    {/* Info Projek */}
-                    <div className="p-6 flex flex-col grow space-y-4">
-                      <div>
-                        <Link to={`/project/${project.slug || project.uuid}`}>
-                          <h4 className="text-xl font-bold font-poppins text-gray-100 group-hover:text-goldPrimary transition-colors line-clamp-1 cursor-pointer">
-                            {project.title}
-                          </h4>
-                        </Link>
-                        <p className="text-sm text-gray-400 mt-2 line-clamp-3 leading-relaxed">
-                          {project.description}
-                        </p>
-                      </div>
-
-                      {/* Tech Stack Tools */}
-                      <div className="flex flex-wrap gap-2 pt-2 mt-auto">
-                        {project.tools.split(',').map((tool, index) => (
-                          <span
-                            key={index}
-                            className="text-xs px-2 py-1 rounded-md bg-bgMain border border-borderMuted text-gray-300"
+          <div className="space-y-8">
+            {filteredProjects.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                Tidak ada projek yang ditemukan untuk kategori ini.
+              </div>
+            ) : (
+              <>
+                <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                  <AnimatePresence mode="wait">
+                    {currentProjects.map((project) => (
+                      <motion.div
+                        key={project.uuid}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3 }}
+                        className="h-full"
+                      >
+                        <Card className="h-full flex flex-col overflow-hidden bg-bgSurface/40 border-borderMuted group hover:border-goldPrimary transition-colors duration-300">
+                          {/* Gambar Thumbnail */}
+                          <Link 
+                            to={`/project/${project.slug || project.uuid}`} 
+                            className="relative h-48 w-full overflow-hidden bg-bgMain border-b border-borderMuted flex items-center justify-center cursor-pointer"
                           >
-                            {tool.trim()}
-                          </span>
-                        ))}
-                      </div>
+                            {project.image ? (
+                              <img
+                                src={project.image.startsWith('http') ? project.image : `https://be-portfolio-shinta.vercel.app${project.image}`}
+                                alt={project.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <LuFolderGit2 className="w-16 h-16 text-borderMuted group-hover:text-goldPrimary/50 transition-colors duration-300" />
+                            )}
+                            <div className="absolute top-3 right-3 bg-bgMain/90 backdrop-blur border border-borderMuted px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider text-goldPrimary uppercase">
+                              {project.category}
+                            </div>
+                          </Link>
 
-                      {/* Aksi Tautan Eksternal */}
-                      <div className="flex items-center gap-3 pt-4 border-t border-borderMuted/60 mt-4">
-                        {project.github_url && (
-                          <a
-                            href={project.github_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg bg-bgMain border border-borderMuted text-gray-400 hover:text-goldPrimary hover:border-goldPrimary transition-colors"
-                            aria-label="Repository GitHub"
-                          >
-                            <FaGithub className="w-4 h-4" />
-                          </a>
-                        )}
-                        {project.figma_url && (
-                          <a
-                            href={project.figma_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg bg-bgMain border border-borderMuted text-gray-400 hover:text-goldPrimary hover:border-goldPrimary transition-colors"
-                            aria-label="Desain Figma"
-                          >
-                            <FaFigma className="w-4 h-4" />
-                          </a>
-                        )}
-                        {project.website_url && (
-                          <a
-                            href={project.website_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg bg-bgMain border border-borderMuted text-gray-400 hover:text-goldPrimary hover:border-goldPrimary transition-colors"
-                            aria-label="Kunjungi Website"
-                          >
-                            <LuExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
+                          {/* Info Projek */}
+                          <div className="p-6 flex flex-col grow space-y-4">
+                            <div>
+                              <Link to={`/project/${project.slug || project.uuid}`}>
+                                <h4 className="text-xl font-bold font-poppins text-gray-100 group-hover:text-goldPrimary transition-colors line-clamp-1 cursor-pointer">
+                                  {project.title}
+                                </h4>
+                              </Link>
+                              <p className="text-sm text-gray-400 mt-2 line-clamp-3 leading-relaxed">
+                                {project.description}
+                              </p>
+                            </div>
+
+                            {/* Tech Stack Tools */}
+                            <div className="flex flex-wrap gap-2 pt-2 mt-auto">
+                              {project.tools.split(',').map((tool, index) => (
+                                <span
+                                  key={index}
+                                  className="text-xs px-2 py-1 rounded-md bg-bgMain border border-borderMuted text-gray-300"
+                                >
+                                  {tool.trim()}
+                                </span>
+                              ))}
+                            </div>
+
+                            {/* Aksi Tautan Eksternal */}
+                            <div className="flex items-center gap-3 pt-4 border-t border-borderMuted/60 mt-4">
+                              {project.github_url && (
+                                <a
+                                  href={project.github_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 rounded-lg bg-bgMain border border-borderMuted text-gray-400 hover:text-goldPrimary hover:border-goldPrimary transition-colors"
+                                  aria-label="Repository GitHub"
+                                >
+                                  <FaGithub className="w-4 h-4" />
+                                </a>
+                              )}
+                              {project.figma_url && (
+                                <a
+                                  href={project.figma_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 rounded-lg bg-bgMain border border-borderMuted text-gray-400 hover:text-goldPrimary hover:border-goldPrimary transition-colors"
+                                  aria-label="Desain Figma"
+                                >
+                                  <FaFigma className="w-4 h-4" />
+                                </a>
+                              )}
+                              {project.website_url && (
+                                <a
+                                  href={project.website_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 rounded-lg bg-bgMain border border-borderMuted text-gray-400 hover:text-goldPrimary hover:border-goldPrimary transition-colors"
+                                  aria-label="Kunjungi Website"
+                                >
+                                  <LuExternalLink className="w-4 h-4" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+
+                {/* Navigasi Pagination / Slider (< 1 dari 10 >) */}
+                {filteredProjects.length > ITEMS_PER_PAGE && (
+                  <div className="flex items-center justify-center gap-4 pt-6">
+                    <button
+                      onClick={handlePrev}
+                      className="p-2.5 rounded-xl bg-bgSurface/60 border border-borderMuted text-gray-300 hover:text-goldPrimary hover:border-goldPrimary transition-all duration-300 focus:outline-none"
+                      aria-label="Previous Projects"
+                    >
+                      <LuChevronLeft className="w-5 h-5" />
+                    </button>
+                    
+                    <span className="text-sm font-medium font-poppins text-gray-300 tracking-wider">
+                      {currentPage} dari {totalPages}
+                    </span>
+
+                    <button
+                      onClick={handleNext}
+                      className="p-2.5 rounded-xl bg-bgSurface/60 border border-borderMuted text-gray-300 hover:text-goldPrimary hover:border-goldPrimary transition-all duration-300 focus:outline-none"
+                      aria-label="Next Projects"
+                    >
+                      <LuChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         )}
       </motion.div>
     </section>
