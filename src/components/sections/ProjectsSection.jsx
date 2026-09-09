@@ -84,13 +84,33 @@ const dummyProjects = [
 ];
 
 const categories = ['All', 'Website Development', 'Machine Learning', 'UI/UX Design'];
-const ITEMS_PER_PAGE = 3;
 
 const ProjectsSection = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // State dinamis untuk jumlah item per halaman berdasarkan ukuran layar
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+
+  // Deteksi ukuran layar (Mobile: 1, Tablet/iPad: 2, Desktop: 3)
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setItemsPerPage(1); // Mobile
+      } else if (width >= 768 && width < 1024) {
+        setItemsPerPage(2); // Tablet / iPad
+      } else {
+        setItemsPerPage(3); // Desktop
+      }
+    };
+
+    handleResize(); // Jalankan saat mount
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -122,27 +142,34 @@ const ProjectsSection = () => {
     ? projects
     : projects.filter((project) => project.category.toLowerCase() === selectedCategory.toLowerCase());
 
-  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE) || 1;
-  const currentPage = Math.floor(currentIndex / ITEMS_PER_PAGE) + 1;
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage) || 1;
+  const currentPage = Math.floor(currentIndex / itemsPerPage) + 1;
+
+  // Pastikan currentIndex tidak melampaui batas totalPages saat itemsPerPage berubah
+  useEffect(() => {
+    if (currentIndex >= filteredProjects.length && filteredProjects.length > 0) {
+      setCurrentIndex(0);
+    }
+  }, [itemsPerPage, filteredProjects.length, currentIndex]);
 
   const handleNext = () => {
-    if (currentIndex + ITEMS_PER_PAGE < filteredProjects.length) {
-      setCurrentIndex(currentIndex + ITEMS_PER_PAGE);
+    if (currentIndex + itemsPerPage < filteredProjects.length) {
+      setCurrentIndex(currentIndex + itemsPerPage);
     } else {
       setCurrentIndex(0); // Loop kembali ke awal jika sudah di halaman terakhir
     }
   };
 
   const handlePrev = () => {
-    if (currentIndex - ITEMS_PER_PAGE >= 0) {
-      setCurrentIndex(currentIndex - ITEMS_PER_PAGE);
+    if (currentIndex - itemsPerPage >= 0) {
+      setCurrentIndex(currentIndex - itemsPerPage);
     } else {
-      const lastPageIndex = (totalPages - 1) * ITEMS_PER_PAGE;
+      const lastPageIndex = Math.max(0, (totalPages - 1) * itemsPerPage);
       setCurrentIndex(lastPageIndex); // Pindah ke halaman terakhir jika di awal
     }
   };
 
-  const currentProjects = filteredProjects.slice(currentIndex, currentIndex + ITEMS_PER_PAGE);
+  const currentProjects = filteredProjects.slice(currentIndex, currentIndex + itemsPerPage);
 
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
@@ -295,7 +322,7 @@ const ProjectsSection = () => {
                 </motion.div>
 
                 {/* Navigasi Pagination / Slider (< 1 dari 10 >) */}
-                {filteredProjects.length > ITEMS_PER_PAGE && (
+                {filteredProjects.length > itemsPerPage && (
                   <div className="flex items-center justify-center gap-4 pt-6">
                     <button
                       onClick={handlePrev}
@@ -306,7 +333,7 @@ const ProjectsSection = () => {
                     </button>
                     
                     <span className="text-sm font-medium font-poppins text-gray-300 tracking-wider">
-                      {currentPage} dari {totalPages}
+                      &lt; {currentPage} dari {totalPages} &gt;
                     </span>
 
                     <button
