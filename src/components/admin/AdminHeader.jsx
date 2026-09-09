@@ -1,21 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LuLogOut, LuUser, LuSettings, LuMenu } from 'react-icons/lu';
 import { useAuth } from '../../context/AuthContext';
+import { getProfile } from '../../api/backendApi';
 
 const AdminHeader = ({ onMenuClick }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [profileImage, setProfileImage] = useState(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchHeaderProfile = async () => {
+            try {
+                const response = await getProfile();
+                const profileData = response.data?.data || response.data;
+                if (profileData && profileData.profile_image && isMounted) {
+                    setProfileImage(profileData.profile_image);
+                }
+            } catch (error) {
+                console.error('Gagal memuat foto profil untuk header:', error);
+            }
+        };
+
+        fetchHeaderProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleLogout = async () => {
         await logout();
         navigate('/login');
     };
-
-    // Ambil URL foto profil dari data user (sesuaikan dengan properti dari backend Anda, misal: profile_image atau avatar)
-    const profileImage = user?.profile_image || user?.avatar;
 
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-6 bg-bgSurface/80 backdrop-blur-md border-b border-borderMuted">
@@ -49,7 +69,6 @@ const AdminHeader = ({ onMenuClick }) => {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                // Fallback jika foto tidak ada (menampilkan huruf pertama / inisial)
                                 user?.username ? user.username.charAt(0).toUpperCase() : 'A'
                             )}
                         </div>
