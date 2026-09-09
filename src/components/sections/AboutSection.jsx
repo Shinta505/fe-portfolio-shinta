@@ -36,7 +36,7 @@ const AboutSection = () => {
   const dummyProfile = {
     fullname: "Shinta Nursobah Chairani",
     headline: "Full-Stack Web Developer & UI/UX Designer",
-    bio: "Mahasiswa Teknik Informatika UPN \"Veteran\" Yogyakarta (Angkatan 2022) yang memiliki ketertarikan mendalam pada pengembangan web full-stack, antarmuka pengguna (UI/UX), serta machine learning dan computer vision. Berpengalaman dalam merancang dan membangun aplikasi web interaktif menggunakan Node.js, Express.js, React.js, serta integrasi database Supabase PostgreSQL.",
+    bio: "Mahasiswa Informatika UPN \"Veteran\" Yogyakarta (Angkatan 2022) yang memiliki ketertarikan mendalam pada pengembangan web full-stack, antarmuka pengguna (UI/UX), serta machine learning dan computer vision. Berpengalaman dalam merancang dan membangun aplikasi web interaktif menggunakan Node.js, Express.js, React.js, serta integrasi database Supabase PostgreSQL.",
     location: "Sleman, Yogyakarta (Asal: Tegal, Jawa Tengah)",
     email: "shintanursobah@example.com",
     github_url: "https://github.com/Shinta505",
@@ -111,7 +111,7 @@ const AboutSection = () => {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Pendidikan</p>
-                    <p className="font-medium text-gray-200">Teknik Informatika UPN "Veteran" Yogyakarta</p>
+                    <p className="font-medium text-gray-200">Informatika UPN "Veteran" Yogyakarta</p>
                   </div>
                 </div>
 
