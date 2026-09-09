@@ -9,6 +9,9 @@ export default function ManageSettings() {
     // Mengonsumsi state global dari ThemeContext untuk warna aksen
     const { accentColor, changeAccentColor } = useTheme();
 
+    // State untuk mengontrol buka/tutup sidebar pada tampilan mobile
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     // State lokal untuk form manajemen SEO
     const [seoSettings, setSeoSettings] = useState(() => {
         const savedSeo = localStorage.getItem('seoSettings');
@@ -49,10 +52,12 @@ export default function ManageSettings() {
 
     return (
         <div className="flex min-h-screen bg-bgMain">
-            <AdminSidebar />
+            {/* Teruskan state mobile sidebar ke AdminSidebar jika diperlukan */}
+            <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
             <div className="flex-1 flex flex-col min-w-0">
-                <AdminHeader />
+                {/* Hubungkan onMenuClick agar tombol hamburger berfungsi */}
+                <AdminHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
                 <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
                     <motion.div
