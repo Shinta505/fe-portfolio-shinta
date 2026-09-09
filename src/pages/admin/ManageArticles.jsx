@@ -38,6 +38,21 @@ const ManageArticles = () => {
 
     const [status, setStatus] = useState({ type: null, message: '' });
 
+    // Fungsi helper untuk memeriksa dan mengubah status secara otomatis berdasarkan waktu
+    const processArticlesWithSchedule = (articleList) => {
+        const now = new Date();
+        return articleList.map((article) => {
+            if (article.status === 'draft' && article.publishedAt) {
+                const publishTime = new Date(article.publishedAt);
+                // Jika waktu saat ini sudah melewati atau sama dengan waktu publish, ubah status menjadi published secara lokal
+                if (now >= publishTime) {
+                    return { ...article, status: 'published' };
+                }
+            }
+            return article;
+        });
+    };
+
     useEffect(() => {
         let isMounted = true;
 
@@ -48,7 +63,8 @@ const ManageArticles = () => {
                 const data = response.data?.data || response.data;
 
                 if (isMounted) {
-                    setArticles(Array.isArray(data) ? data : []);
+                    const rawArticles = Array.isArray(data) ? data : [];
+                    setArticles(processArticlesWithSchedule(rawArticles));
                 }
             } catch (error) {
                 console.error('Gagal mengambil data artikel:', error);
@@ -71,7 +87,8 @@ const ManageArticles = () => {
         try {
             const response = await getArticles();
             const data = response.data?.data || response.data;
-            setArticles(Array.isArray(data) ? data : []);
+            const rawArticles = Array.isArray(data) ? data : [];
+            setArticles(processArticlesWithSchedule(rawArticles));
         } catch (error) {
             console.error('Gagal mengambil data artikel:', error);
         } finally {
@@ -83,7 +100,6 @@ const ManageArticles = () => {
         const { name, value } = e.target;
         setFormData((prev) => {
             const updated = { ...prev, [name]: value };
-            // Auto-generate slug from title if title is changing and we are creating or slug hasn't been manually customized
             if (name === 'title' && !editingId) {
                 updated.slug = value
                     .toLowerCase()
