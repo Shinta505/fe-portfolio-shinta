@@ -4,38 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { getArticles } from '../../api/backendApi';
-import { LuCalendar, LuArrowRight, LuImageOff } from 'react-icons/lu';
-
-// Data dummy diletakkan di luar komponen dan tidak diekspor untuk mencegah error Vite Fast Refresh.
-const dummyArticles = [
-  {
-    uuid: 'dummy-article-1',
-    title: 'Membangun API Berkinerja Tinggi dengan Express.js dan Sequelize',
-    slug: 'membangun-api-berkinerja-tinggi-dengan-express-js-dan-sequelize',
-    content: 'Dalam arsitektur modern, RESTful API menjadi tulang punggung komunikasi antar sistem. Express.js yang dipadukan dengan ORM Sequelize memberikan kombinasi luar biasa antara kesederhanaan routing dan ketangguhan pengelolaan database relasional seperti PostgreSQL...',
-    image: '',
-    publishedAt: '2023-11-20T10:00:00.000Z',
-    status: 'published'
-  },
-  {
-    uuid: 'dummy-article-2',
-    title: 'Penerapan Transfer Learning pada Convolutional Neural Networks',
-    slug: 'penerapan-transfer-learning-pada-cnn',
-    content: 'Membangun model Deep Learning dari awal seringkali memakan waktu dan sumber daya komputasi yang masif. Transfer Learning memungkinkan kita menggunakan model pra-latih (pre-trained model) seperti ResNet-50 atau InceptionV3 untuk mempercepat konvergensi pada dataset baru...',
-    image: '',
-    publishedAt: '2024-01-15T08:30:00.000Z',
-    status: 'published'
-  },
-  {
-    uuid: 'dummy-article-3',
-    title: 'Menguasai Tailwind CSS v4 untuk UI/UX yang Lebih Estetis',
-    slug: 'menguasai-tailwind-css-v4-untuk-ui-ux',
-    content: 'Pembaruan terbaru dari Tailwind CSS membawa banyak perbaikan performa dan kemudahan kustomisasi. Artikel ini membahas teknik-teknik membuat komponen UI yang dapat digunakan kembali, mengelola desain responsif, dan memastikan dukungan mode gelap (dark mode) secara efisien...',
-    image: '',
-    publishedAt: '2024-03-05T14:15:00.000Z',
-    status: 'published'
-  }
-];
+import { LuCalendar, LuArrowRight, LuImageOff, LuFileText } from 'react-icons/lu';
 
 const ArticlesSection = () => {
   const [articles, setArticles] = useState([]);
@@ -47,14 +16,14 @@ const ArticlesSection = () => {
         const response = await getArticles('published');
         const data = response.data?.data || response.data;
 
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setArticles(data);
         } else {
-          setArticles(dummyArticles);
+          setArticles([]);
         }
       } catch (error) {
-        console.error('Gagal mengambil data artikel, menggunakan data dummy:', error);
-        setArticles(dummyArticles);
+        console.error('Gagal mengambil data artikel:', error);
+        setArticles([]);
       } finally {
         setLoading(false);
       }
@@ -85,10 +54,10 @@ const ArticlesSection = () => {
           </p>
         </div>
 
-        {/* Grid Konten Artikel */}
+        {/* Grid Konten Artikel atau Pesan Kosong */}
         {loading ? (
           <LoadingSpinner size="md" text="Memuat artikel..." />
-        ) : (
+        ) : articles.length > 0 ? (
           <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             <AnimatePresence>
               {articles.map((article) => (
@@ -104,7 +73,6 @@ const ArticlesSection = () => {
                   <Card className="h-full flex flex-col overflow-hidden bg-bgSurface/40 border-borderMuted group hover:border-goldPrimary transition-colors duration-300">
 
                     {/* Gambar Thumbnail */}
-                    {/* Pastikan route di App.jsx terdaftar sebagai path="/article/:identifier" */}
                     <Link to={`/article/${article.slug || article.uuid}`} className="relative h-48 w-full overflow-hidden bg-bgMain border-b border-borderMuted flex items-center justify-center cursor-pointer">
                       {article.image ? (
                         <img
@@ -159,6 +127,12 @@ const ArticlesSection = () => {
               ))}
             </AnimatePresence>
           </motion.div>
+        ) : (
+          <div className="text-center py-16 px-4 rounded-2xl bg-bgSurface/20 border border-borderMuted max-w-md mx-auto space-y-3">
+            <LuFileText className="w-12 h-12 text-goldPrimary mx-auto opacity-80" />
+            <p className="text-gray-300 font-medium text-base">Belum ada artikel yang dipublish.</p>
+            <p className="text-gray-500 text-sm">Silakan kunjungi kembali nanti untuk membaca pembaruan wawasan terbaru.</p>
+          </div>
         )}
       </motion.div>
     </section>
