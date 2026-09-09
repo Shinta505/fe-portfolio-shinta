@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LuAward, LuExternalLink, LuCalendar, LuShieldCheck, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
+import { LuAward, LuExternalLink, LuCalendar, LuShieldCheck } from 'react-icons/lu';
 import { FaBuilding } from 'react-icons/fa';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { getCertifications } from '../../api/backendApi';
 
 // Konstanta data dummy (hardcoded) tidak diekspor untuk mencegah peringatan Vite Fast Refresh.
+// Struktur properti disesuaikan dengan skema CertificationModel pada database PostgreSQL Supabase[cite: 1].
 const dummyCertifications = [
   {
     uuid: 'dummy-cert-1',
@@ -40,50 +41,17 @@ const dummyCertifications = [
     credentialUrl: 'https://aws.amazon.com/training/digital/aws-cloud-practitioner-essentials/',
     skills: 'Cloud Computing, AWS, Deployment, Server Management',
     media: ''
-  },
-  {
-    uuid: 'dummy-cert-4',
-    name: 'Machine Learning Beginner',
-    issuer: 'Dicoding Indonesia',
-    issueDate: 'Agustus 2024',
-    expirationDate: 'Agustus 2027',
-    credentialId: 'ML-BEG-99887',
-    credentialUrl: 'https://www.dicoding.com',
-    skills: 'Python, Machine Learning, Scikit-learn',
-    media: ''
-  },
-  {
-    uuid: 'dummy-cert-5',
-    name: 'Deep Learning Specialization',
-    issuer: 'Coursera / DeepLearning.AI',
-    issueDate: 'Oktober 2024',
-    expirationDate: 'Oktober 2027',
-    credentialId: 'DL-SPEC-55443',
-    credentialUrl: 'https://www.coursera.org',
-    skills: 'TensorFlow, Keras, Neural Networks, Computer Vision',
-    media: ''
   }
 ];
 
+/**
+ * Komponen CertificationsSection
+ * Berfungsi untuk merender antarmuka daftar lisensi dan sertifikasi profesional.
+ * Terintegrasi dengan endpoint backend API untuk memuat data secara dinamis[cite: 1, 2].
+ */
 const CertificationsSection = () => {
   const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(4);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setItemsPerPage(1);
-      } else {
-        setItemsPerPage(4);
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     const fetchCertifications = async () => {
@@ -91,6 +59,7 @@ const CertificationsSection = () => {
         const response = await getCertifications();
         const data = response.data?.data || response.data;
 
+        // Memastikan ketersediaan data dari respons server
         if (Array.isArray(data) && data.length > 0) {
           setCertifications(data);
         } else {
@@ -107,18 +76,8 @@ const CertificationsSection = () => {
     fetchCertifications();
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [itemsPerPage]);
-
-  const totalPages = Math.max(1, Math.ceil(certifications.length / itemsPerPage));
-  const displayedCertifications = certifications.slice(
-    currentPage * itemsPerPage,
-    (currentPage + 1) * itemsPerPage
-  );
-
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
+    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto relative">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -143,111 +102,84 @@ const CertificationsSection = () => {
         {loading ? (
           <LoadingSpinner size="md" text="Memuat data sertifikasi..." />
         ) : (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {displayedCertifications.map((cert, index) => (
-                <motion.div
-                  key={cert.uuid || index}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="h-full"
-                >
-                  <Card className="h-full p-6 flex flex-col bg-bgSurface/40 hover:bg-bgSurface/70 border-borderMuted hover:border-goldPrimary transition-all duration-300 group">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
+            {certifications.map((cert, index) => (
+              <motion.div
+                key={cert.uuid || index}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="h-full"
+              >
+                <Card className="h-full p-6 sm:p-8 flex flex-col bg-bgSurface/40 hover:bg-bgSurface/70 border-borderMuted hover:border-goldPrimary transition-all duration-300 group">
 
-                    {/* Header Kartu: Judul dan Ikon */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-bgMain border border-borderMuted flex items-center justify-center shrink-0 text-goldPrimary group-hover:scale-105 transition-transform duration-300">
-                        <LuAward className="w-6 h-6" />
+                  {/* Header Kartu: Judul dan Ikon */}
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-bgMain border border-borderMuted flex items-center justify-center shrink-0 text-goldPrimary group-hover:scale-105 transition-transform duration-300">
+                      <LuAward className="w-6 h-6" />
+                    </div>
+                    {cert.credentialUrl && (
+                      <a
+                        href={cert.credentialUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-400 hover:text-goldPrimary p-2 rounded-lg hover:bg-bgMain transition-colors"
+                        aria-label="Lihat Kredensial"
+                      >
+                        <LuExternalLink className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Informasi Utama Sertifikasi */}
+                  <div className="space-y-3 grow">
+                    <h4 className="text-xl sm:text-2xl font-bold font-poppins text-gray-100 leading-snug group-hover:text-goldPrimary transition-colors">
+                      {cert.name}
+                    </h4>
+
+                    <div className="space-y-2 text-sm text-gray-300">
+                      <div className="flex items-center gap-2">
+                        <FaBuilding className="text-borderMuted w-4 h-4 shrink-0" />
+                        <span className="font-medium text-gray-200">{cert.issuer}</span>
                       </div>
-                      {cert.credentialUrl && (
-                        <a
-                          href={cert.credentialUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-goldPrimary p-2 rounded-lg hover:bg-bgMain transition-colors"
-                          aria-label="Lihat Kredensial"
-                        >
-                          <LuExternalLink className="w-5 h-5" />
-                        </a>
+
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+                        <LuCalendar className="text-borderMuted w-4 h-4 shrink-0" />
+                        <span>
+                          Diterbitkan: {cert.issueDate}
+                          {cert.expirationDate ? ` — Kedaluwarsa: ${cert.expirationDate}` : ' (Tanpa masa berlaku)'}
+                        </span>
+                      </div>
+
+                      {cert.credentialId && (
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+                          <LuShieldCheck className="text-borderMuted w-4 h-4 shrink-0" />
+                          <span>ID Kredensial: <span className="text-gray-300 font-mono">{cert.credentialId}</span></span>
+                        </div>
                       )}
                     </div>
+                  </div>
 
-                    {/* Informasi Utama Sertifikasi */}
-                    <div className="space-y-3 grow">
-                      <h4 className="text-lg sm:text-xl font-bold font-poppins text-gray-100 leading-snug group-hover:text-goldPrimary transition-colors line-clamp-2">
-                        {cert.name}
-                      </h4>
-
-                      <div className="space-y-2 text-sm text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <FaBuilding className="text-borderMuted w-4 h-4 shrink-0" />
-                          <span className="font-medium text-gray-200 truncate">{cert.issuer}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <LuCalendar className="text-borderMuted w-4 h-4 shrink-0" />
-                          <span>
-                            Diterbitkan: {cert.issueDate}
+                  {/* Daftar Keahlian / Kompetensi yang Diperoleh */}
+                  {cert.skills && (
+                    <div className="pt-5 mt-5 border-t border-borderMuted/60">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Keahlian Tervalidasi:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {cert.skills.split(',').map((skill, i) => (
+                          <span
+                            key={i}
+                            className="px-2.5 py-1 text-xs font-medium bg-bgMain border border-borderMuted text-gray-300 rounded-md"
+                          >
+                            {skill.trim()}
                           </span>
-                        </div>
-
-                        {cert.credentialId && (
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <LuShieldCheck className="text-borderMuted w-4 h-4 shrink-0" />
-                            <span className="truncate">ID: <span className="text-gray-300 font-mono">{cert.credentialId}</span></span>
-                          </div>
-                        )}
+                        ))}
                       </div>
                     </div>
-
-                    {/* Daftar Keahlian / Kompetensi yang Diperoleh */}
-                    {cert.skills && (
-                      <div className="pt-4 mt-4 border-t border-borderMuted/60">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Keahlian:</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {cert.skills.split(',').slice(0, 3).map((skill, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-0.5 text-[11px] font-medium bg-bgMain border border-borderMuted text-gray-300 rounded-md"
-                            >
-                              {skill.trim()}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Navigasi Carousel / Pagination */}
-            {certifications.length > itemsPerPage && (
-              <div className="flex items-center justify-center gap-6 pt-4">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-                  disabled={currentPage === 0}
-                  className="p-2.5 rounded-xl bg-bgSurface border border-borderMuted text-gray-300 hover:text-goldPrimary hover:border-goldPrimary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md"
-                  aria-label="Previous Page"
-                >
-                  <LuChevronLeft className="w-5 h-5" />
-                </button>
-
-                <span className="text-sm font-semibold font-poppins text-gray-200 tracking-wide">
-                  {currentPage + 1} dari {totalPages}
-                </span>
-
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
-                  disabled={currentPage === totalPages - 1}
-                  className="p-2.5 rounded-xl bg-bgSurface border border-borderMuted text-gray-300 hover:text-goldPrimary hover:border-goldPrimary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md"
-                  aria-label="Next Page"
-                >
-                  <LuChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+                  )}
+                </Card>
+              </motion.div>
+            ))}
           </div>
         )}
       </motion.div>
