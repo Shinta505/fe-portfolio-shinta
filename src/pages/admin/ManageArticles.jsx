@@ -38,14 +38,14 @@ const ManageArticles = () => {
 
     const [status, setStatus] = useState({ type: null, message: '' });
 
-    // Fungsi helper untuk memeriksa dan mengubah status secara otomatis berdasarkan waktu
+    // Fungsi helper untuk memeriksa dan mengubah status secara otomatis berdasarkan perbandingan milidetik waktu lokal
     const processArticlesWithSchedule = (articleList) => {
-        const now = new Date();
+        const nowTime = new Date().getTime();
         return articleList.map((article) => {
             if (article.status === 'draft' && article.publishedAt) {
-                const publishTime = new Date(article.publishedAt);
-                // Jika waktu saat ini sudah melewati atau sama dengan waktu publish, ubah status menjadi published secara lokal
-                if (now >= publishTime) {
+                const publishTime = new Date(article.publishedAt).getTime();
+                // Jika waktu saat ini sudah melewati atau sama dengan waktu publish, ubah status menjadi published
+                if (!isNaN(publishTime) && nowTime >= publishTime) {
                     return { ...article, status: 'published' };
                 }
             }
