@@ -180,9 +180,6 @@ const AboutSection = () => {
                 <p className="text-gray-300 text-base leading-relaxed font-sans">
                   {currentProfile.bio || dummyProfile.bio}
                 </p>
-                <p className="text-gray-400 text-sm leading-relaxed font-sans">
-                  Aktif dalam organisasi kampus, kepemimpinan proyek sosial, serta eksplorasi teknologi pengembangan perangkat lunak modern. Memiliki komitmen tinggi untuk terus belajar dan menghasilkan karya digital yang solutif.
-                </p>
               </div>
 
               {/* Bagian Tautan Resume / CV */}
