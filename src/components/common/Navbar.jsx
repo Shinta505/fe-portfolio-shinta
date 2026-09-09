@@ -30,7 +30,7 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-45 transition-all duration-300 ${isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? 'bg-bgMain/80 backdrop-blur-md border-b border-borderMuted py-3 shadow-lg'
           : 'bg-transparent py-5'
         }`}
@@ -50,6 +50,7 @@ const Navbar = () => {
             <a
               key={link.name}
               href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
               className="text-gray-300 hover:text-goldPrimary font-medium text-sm transition-colors duration-300"
             >
               {link.name}
