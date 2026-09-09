@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { LuHeart, LuArrowUp } from 'react-icons/lu';
-import { FaGithub, FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaInstagram, FaTiktok } from 'react-icons/fa';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -55,6 +55,15 @@ const Footer = () => {
                 aria-label="Instagram"
               >
                 <FaInstagram className="w-5 h-5" />
+              </a>
+              <a
+                href="https://tiktok.com/@username_tiktok_kamu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-xl bg-bgMain border border-borderMuted flex items-center justify-center text-gray-300 hover:text-goldPrimary hover:border-goldPrimary transition-colors duration-300"
+                aria-label="TikTok"
+              >
+                <FaTiktok className="w-4 h-4" />
               </a>
             </div>
           </div>
