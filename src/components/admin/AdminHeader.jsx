@@ -14,6 +14,9 @@ const AdminHeader = ({ onMenuClick }) => {
         navigate('/login');
     };
 
+    // Ambil URL foto profil dari data user (sesuaikan dengan properti dari backend Anda, misal: profile_image atau avatar)
+    const profileImage = user?.profile_image || user?.avatar;
+
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-6 bg-bgSurface/80 backdrop-blur-md border-b border-borderMuted">
             <div className="flex items-center gap-4">
@@ -37,9 +40,20 @@ const AdminHeader = ({ onMenuClick }) => {
                         className="flex items-center gap-3 p-2 rounded-xl bg-bgMain border border-borderMuted hover:border-goldPrimary transition-colors focus:outline-none"
                         aria-label="User Menu"
                     >
-                        <div className="w-10 h-10 rounded-lg bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-goldPrimary font-bold font-poppins shrink-0">
-                            {user?.username ? user.username.charAt(0).toUpperCase() : 'A'}
+                        {/* Avatar / Foto Profil */}
+                        <div className="w-10 h-10 rounded-lg bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-goldPrimary font-bold font-poppins shrink-0 overflow-hidden">
+                            {profileImage ? (
+                                <img
+                                    src={profileImage}
+                                    alt={user?.username || 'Admin'}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                // Fallback jika foto tidak ada (menampilkan huruf pertama / inisial)
+                                user?.username ? user.username.charAt(0).toUpperCase() : 'A'
+                            )}
                         </div>
+
                         <div className="hidden sm:block text-left">
                             <p className="text-sm font-semibold text-gray-200 font-poppins">
                                 {user?.username || 'Administrator'}
